@@ -149,7 +149,7 @@ function confirmarExclusao(r){
 
 /* ---------- Cadastro / edição ---------- */
 function linha(i={}){
-  return `<div class="row"><input placeholder="Qtd" value="${esc(i.qtd)}" inputmode="decimal" aria-label="Quantidade"><select aria-label="Unidade">${UNID.map(u=>`<option value="${esc(u)}" ${u===i.un?"selected":""}>${u||"unid."}</option>`).join("")}</select><input placeholder="Ingrediente" value="${esc(i.nome)}" aria-label="Ingrediente"><button type="button" class="x" aria-label="Remover ingrediente">✕</button></div>`;
+  return `<div class="row"><input placeholder="Qtd" value="${esc(i.qtd)}" aria-label="Quantidade"><select aria-label="Unidade">${UNID.map(u=>`<option value="${esc(u)}" ${u===i.un?"selected":""}>${u||"unid."}</option>`).join("")}</select><input placeholder="Ingrediente" value="${esc(i.nome)}" aria-label="Ingrediente"><button type="button" class="x" aria-label="Remover ingrediente">✕</button></div>`;
 }
 function addLinha(box,i){box.insertAdjacentHTML("beforeend",linha(i));const r=box.lastElementChild;r.querySelector(".x").onclick=()=>r.remove()}
 function lerLinhas(box){return[...box.children].map(r=>{const[q,u,n]=r.querySelectorAll("input,select");return{qtd:q.value.trim(),un:u.value,nome:n.value.trim()}}).filter(i=>i.nome)}
