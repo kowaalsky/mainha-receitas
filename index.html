@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>Receitas da Mamãe</title>
+<title>Receitas da Mainha</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍰</text></svg>">
 <style>
 :root{--bg:#f5eff5;--card:#fff;--tx:#7e406c;--mut:#5f7168;--ac:#592d5a;--acx:#fff;--hl:#f04be2;--hlx:#2b2208;--bd:#d5ded6;--rd:#b3261e}
@@ -50,8 +50,8 @@ ul.ing{padding-left:22px}ol li{margin:10px 0}
 <body>
 <div class="w" id="app"></div>
 <script>
-const UNID=["","xíc.","colher (sopa)","colher (chá)","g","kg","ml","L","unid.","fatia(s)","pitada","a gosto"];
-const CATS=["Bolos","Doces","Sobremesas","Salgados","Massas","Carnes","Aves","Peixes","Sopas","Saladas","Pães","Bebidas","Outros"];
+const UNID=["","xíc", "xíc (chá)", "colher","colher (sopa)","colher (chá)","g","kg","ml","L","unid.","fatia(s)","pitada","a gosto"];
+const CATS=["Bolos","Doces","Sobremesas","Salgados","Massas","Carnes","Aves","Peixes","Sopas","Saladas","Pães","Bebidas", "Almoço","Outros"];
 const TEMPOS=["","15 min","30 min","45 min","1 h","1 h 30","2 h","Mais de 2 h"];
 let token=null,recipes=[],busca="",cat="Todas";
 try{token=sessionStorage.getItem("rm_token")}catch(e){}
@@ -59,6 +59,12 @@ const $=(s,r=document)=>r.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const norm=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
 const app=$("#app");
+const MINUSC=new Set(["a","as","o","os","um","uma","uns","umas","de","da","das","do","dos","em","na","nas","no","nos","num","numa","por","pela","pelas","pelo","pelos","para","pra","com","sem","sob","sobre","ao","aos","à","às","e","ou","mas","que","nem"]);
+const titulo=s=>s.trim().replace(/\s+/g," ").toLowerCase().split(" ").map((w,i)=>(i>0&&MINUSC.has(w))?w:w.replace(/\p{L}/u,c=>c.toUpperCase())).join(" ");
+const cap=s=>String(s||"").replace(/^(\s*\**\s*)(\p{L})/u,(m,a,b)=>a+b.toUpperCase());
+const caps=s=>String(s||"").split("\n").map(cap).join("\n");
+const fmt=s=>esc(s).replace(/\*([^*\n]+)\*/g,"<strong>$1</strong>");
+const fmtbr=s=>fmt(caps(s)).replace(/\n/g,"<br>");
 
 /* ---------- API ---------- */
 async function api(method,qs,body){
@@ -115,22 +121,24 @@ function lista(){
 function resultados(){
   const q=norm(busca);
   const f=recipes.filter(r=>(cat==="Todas"||r.categoria===cat)&&(!q||norm(r.nome).includes(q)||(r.ingredientes||[]).some(i=>norm(i.nome).includes(q))));
-  $("#res").innerHTML=f.length?f.map(r=>`<a class="item" href="#r/${r.id}" style="color:inherit;text-decoration:none"><b>${esc(r.nome)}</b><br><span class="tag">${esc(r.categoria||"Outros")}</span><span class="mut">${[r.tempo,r.porcoes?r.porcoes+" porções":""].filter(Boolean).map(esc).join(" · ")}</span></a>`).join("")
-   :`<div class="msg">${recipes.length?"Nenhuma receita encontrada.":"Ainda não há receitas. Toque em “Nova receita” para cadastrar a primeira."}</div>`;
+  const t=recipes.length;
+  if(!t){$("#res").innerHTML='<div class="msg">Ainda não há receitas. Toque em “Nova receita” para cadastrar a primeira.</div>';return}
+  const cnt=f.length===t?`${t} ${t===1?"receita cadastrada":"receitas cadastradas"}`:`${f.length} ${f.length===1?"receita encontrada":"receitas encontradas"} (de ${t} cadastradas)`;
+  $("#res").innerHTML=`<p class="mut">${cnt}</p>`+(f.length?f.map(r=>`<a class="item" href="#r/${r.id}" style="color:inherit;text-decoration:none"><b>${fmt(r.nome)}</b><br><span class="tag">${esc(r.categoria||"Outros")}</span><span class="mut">${[r.tempo,r.porcoes?r.porcoes+" porções":""].filter(Boolean).map(esc).join(" · ")}</span></a>`).join(""):'<div class="msg">Nenhuma receita encontrada.</div>');
 }
 
 /* ---------- Ver receita ---------- */
-const li=i=>`<li>${esc([i.qtd,i.un,i.nome].filter(Boolean).join(" "))}</li>`;
+const li=i=>`<li>${fmt([i.qtd,i.un,i.nome].filter(Boolean).join(" "))}</li>`;
 function ver(r){
   if(!r){app.innerHTML='<div class="msg">Receita não encontrada.</div><p style="text-align:center"><button class="btn" onclick="location.hash=\'\'">Voltar</button></p>';return}
-  const temRec=(r.recheio||[]).length||r.recheioModo;
+  const temRec=(r.recheio||[]).length||r.recheioModo||r.recheioDica;
   app.innerHTML=`<div class="top noprint"><button class="btn s" onclick="location.hash=''">Voltar</button><span><button class="btn s" onclick="print()">Imprimir</button> <button class="btn s" onclick="location.hash='editar/${r.id}'">Editar</button> <button class="btn o" id="ex">Excluir</button></span></div>
-  <h1>${esc(r.nome)}</h1><span class="tag">${esc(r.categoria||"Outros")}</span><span class="mut">${[r.tempo,r.porcoes?r.porcoes+" porções":""].filter(Boolean).map(esc).join(" · ")}</span>
+  <h1>${fmt(r.nome)}</h1><span class="tag">${esc(r.categoria||"Outros")}</span><span class="mut">${[r.tempo,r.porcoes?r.porcoes+" porções":""].filter(Boolean).map(esc).join(" · ")}</span>
   <div id="delbox"></div>
   <h2>Ingredientes</h2><ul class="ing">${(r.ingredientes||[]).map(li).join("")}</ul>
-  ${temRec?`<h2>Recheio</h2><ul class="ing">${(r.recheio||[]).map(li).join("")}</ul>${r.recheioModo?`<p>${esc(r.recheioModo).replace(/\n/g,"<br>")}</p>`:""}`:""}
-  <h2>Modo de fazer</h2><ol>${(r.preparo||[]).map(p=>`<li>${esc(p)}</li>`).join("")}</ol>
-  ${r.obs?`<h2>Dicas</h2><p>${esc(r.obs).replace(/\n/g,"<br>")}</p>`:""}`;
+  ${temRec?`<h2>Recheio</h2><ul class="ing">${(r.recheio||[]).map(li).join("")}</ul>${r.recheioModo?`<p>${fmtbr(r.recheioModo)}</p>`:""}${r.recheioDica?`<p><b>Dica do recheio:</b><br>${fmtbr(r.recheioDica)}</p>`:""}`:""}
+  <h2>Modo de fazer</h2><ol>${(r.preparo||[]).map(p=>`<li>${fmt(cap(p))}</li>`).join("")}</ol>
+  ${r.obs?`<h2>Dicas</h2><p>${fmtbr(r.obs)}</p>`:""}`;
   $("#ex").onclick=()=>confirmarExclusao(r);
   scrollTo(0,0);
 }
@@ -164,7 +172,9 @@ function form(r){
   <label>Ingredientes</label><div id="ing"></div><button type="button" class="btn s" id="ai">Adicionar ingrediente</button>
   <label>Recheio (se tiver)</label><div id="rec"></div><button type="button" class="btn s" id="ar">Adicionar ingrediente do recheio</button>
   <label for="rm">Modo de fazer o recheio</label><textarea id="rm">${esc(r.recheioModo)}</textarea>
+  <label for="rd">Dica do recheio</label><textarea id="rd">${esc(r.recheioDica)}</textarea>
   <label for="prep">Modo de fazer (um passo por linha)</label><textarea id="prep" style="min-height:170px">${esc((r.preparo||[]).join("\n"))}</textarea>
+  <p class="dica">Dica: coloque *asteriscos* em volta de uma palavra para deixá-la em negrito.</p>
   <label for="obs">Dicas e observações</label><textarea id="obs">${esc(r.obs)}</textarea>
   <div class="acts"><button class="btn" id="sv">Salvar receita</button><button class="btn s" id="cn">Cancelar</button></div><div class="err" id="err"></div>`;
   const ing=$("#ing"),rec=$("#rec");
@@ -175,8 +185,8 @@ function form(r){
   $("#sv").onclick=async()=>{
     const nome=$("#nome").value.trim();
     if(!nome){$("#err").textContent="Dê um nome à receita.";return}
-    const data={nome,categoria:$("#cat").value,porcoes:$("#por").value,tempo:$("#tempo").value,ingredientes:lerLinhas(ing),recheio:lerLinhas(rec),
-      recheioModo:$("#rm").value.trim(),preparo:$("#prep").value.split("\n").map(s=>s.trim()).filter(Boolean),obs:$("#obs").value.trim()};
+    const data={nome:titulo(nome),categoria:$("#cat").value,porcoes:$("#por").value,tempo:$("#tempo").value,ingredientes:lerLinhas(ing),recheio:lerLinhas(rec),
+      recheioModo:caps($("#rm").value.trim()),recheioDica:caps($("#rd").value.trim()),preparo:$("#prep").value.split("\n").map(s=>cap(s.trim())).filter(Boolean),obs:caps($("#obs").value.trim())};
     $("#sv").disabled=true;$("#err").textContent="";
     try{
       const salva=novo?await api("POST","",data):await api("PUT","?id="+r.id,data);
