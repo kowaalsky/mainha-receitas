@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Receitas da Mamãe</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍰</text></svg>">
+<style>
+:root{--bg:#f2f5ef;--card:#fff;--tx:#1d2a24;--mut:#5f7168;--ac:#2d5a4a;--acx:#fff;--hl:#f0c24b;--hlx:#2b2208;--bd:#d5ded6;--rd:#b3261e}
+@media (prefers-color-scheme:dark){:root{--bg:#121a16;--card:#1b2620;--tx:#e8f0ea;--mut:#9db0a4;--ac:#7cc4a4;--acx:#0f1a15;--hl:#c9a23a;--hlx:#1a1405;--bd:#2c3b33;--rd:#ff8a80}}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:17px/1.6 "Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",serif;
+padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.w{max-width:720px;margin:0 auto;padding:18px}
+h1{font-size:1.9rem;line-height:1.2;margin:.3em 0}
+h2{margin:1.4em 0 .3em;font-size:1.2rem;color:var(--ac);border-bottom:2px solid var(--hl);display:inline-block;padding-bottom:2px}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{width:100%;padding:12px;border:1px solid var(--bd);border-radius:8px;background:var(--card)}
+:focus-visible{outline:3px solid var(--hl);outline-offset:2px}
+textarea{min-height:90px}
+.btn{background:var(--ac);color:var(--acx);border:0;border-radius:8px;padding:12px 18px;cursor:pointer;font-weight:bold}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.s{background:transparent;color:var(--ac);border:1px solid var(--ac)}
+.btn.d{background:var(--rd);color:#fff}
+.btn.o{background:transparent;color:var(--rd);border:1px solid var(--rd)}
+.top{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.cats{display:flex;gap:8px;overflow-x:auto;padding:12px 0}
+.chip{white-space:nowrap;border:1px solid var(--bd);background:var(--card);border-radius:20px;padding:6px 14px;cursor:pointer}
+.chip.on{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+.item{display:block;background:var(--card);border:1px solid var(--bd);border-left:5px solid var(--hl);border-radius:8px;padding:14px;margin:10px 0;cursor:pointer}
+.item b{font-size:1.15rem}
+.mut{color:var(--mut);font-size:.92rem}
+.tag{display:inline-block;background:var(--hl);color:var(--hlx);border-radius:4px;padding:1px 9px;font-size:.85rem;margin-right:8px}
+.row{display:grid;grid-template-columns:84px 110px 1fr 40px;gap:6px;margin:6px 0}
+.row .x{padding:0;background:none;border:1px solid var(--bd);border-radius:8px;cursor:pointer}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:block;margin:14px 0 4px;font-weight:bold}
+ul.ing{padding-left:22px}ol li{margin:10px 0}
+.msg{padding:30px 10px;text-align:center;color:var(--mut)}
+.dica{font-size:.85rem;color:var(--mut);margin:4px 0 0}
+.err{color:var(--rd);margin-top:10px}
+.box{background:var(--card);border:1px solid var(--rd);border-radius:8px;padding:14px;margin-top:20px}
+.login{max-width:380px;margin:12vh auto 0}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+@media (max-width:480px){.row{grid-template-columns:76px 96px 1fr 38px}}
+@media print{.noprint{display:none!important}}
+</style>
+</head>
+<body>
+<div class="w" id="app"></div>
+<script>
+const UNID=[{s:""},{s:"xícara",p:"xícaras"},{s:"colher (sopa)",p:"colheres (sopa)"},{s:"colher (chá)",p:"colheres (chá)"},{s:"g",p:"g"},{s:"kg",p:"kg"},{s:"ml",p:"ml"},{s:"L",p:"L"},{s:"fatia",p:"fatias"},{s:"pitada",p:"pitadas"},{s:"a gosto"}];
+const LEG={"xíc.":"xícara","xic.":"xícara","fatia(s)":"fatia","unid.":""};
+const CATS=["Bolos","Doces","Sobremesas","Salgados","Massas","Carnes","Aves","Peixes","Sopas","Saladas","Pães","Bebidas","Outros"];
+const TEMPOS=["","15 min","30 min","45 min","1 h","1 h 30","2 h","Mais de 2 h"];
+let token=null,recipes=[],busca="",cat="Todas";
+try{token=sessionStorage.getItem("rm_token")}catch(e){}
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+const app=$("#app");
+const MINUSC=new Set(["a","as","o","os","um","uma","uns","umas","de","da","das","do","dos","em","na","nas","no","nos","num","numa","por","pela","pelas","pelo","pelos","para","pra","com","sem","sob","sobre","ao","aos","à","às","e","ou","mas","que","nem"]);
+const titulo=s=>s.trim().replace(/\s+/g," ").toLowerCase().split(" ").map((w,i)=>(i>0&&MINUSC.has(w))?w:w.replace(/\p{L}/u,c=>c.toUpperCase())).join(" ");
+const cap=s=>String(s||"").replace(/^(\s*\**\s*)(\p{L})/u,(m,a,b)=>a+b.toUpperCase());
+const caps=s=>String(s||"").split("\n").map(cap).join("\n");
+const fmt=s=>esc(s).replace(/\*([^*\n]+)\*/g,"<strong>$1</strong>");
+const fmtbr=s=>fmt(caps(s)).replace(/\n/g,"<br>");
+const NUMP=/dois|duas|tr[eê]s|quatro|cinco|seis|sete|oito|nove|dez|d[uú]zia/i;
+function qtdValor(q){
+  q=String(q||"").toLowerCase();
+  const t=q.match(/\d+\s*\/\s*\d+|\d+(?:[.,]\d+)?/g);
+  if(t)return t.reduce((a,x)=>{if(x.includes("/")){const[n,d]=x.split("/").map(Number);return a+(d?n/d:0)}return a+parseFloat(x.replace(",","."))},0);
+  if(NUMP.test(q))return 2;
+  return /meia|meio/.test(q)?0.5:1;
+}
+function ingTexto(i){
+  const un=LEG[i.un]??(i.un||""),qtd=(i.qtd||"").trim(),nome=i.nome||"";
+  if(un==="a gosto")return nome+" a gosto";
+  if(!un)return [qtd,nome].filter(Boolean).join(" ");
+  const u=UNID.find(x=>x.s===un);
+  const medida=(u&&u.p&&qtdValor(qtd)>1)?u.p:un;
+  return [qtd,medida,"de",nome].filter(Boolean).join(" ");
+}
+
+/* ---------- API ---------- */
+async function api(method,qs,body){
+  const r=await fetch("/api/recipes"+qs,{method,headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},body:body?JSON.stringify(body):undefined});
+  if(r.status===401){sair(false);throw {auth:true}}
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw {msg:j.erro||"Algo deu errado."};
+  return j;
+}
+async function carregar(){recipes=await api("GET","");}
+
+/* ---------- Login ---------- */
+function telaLogin(msg){
+  app.innerHTML=`<div class="login"><h1>🍰 Receitas da Mamãe</h1><p class="mut">Digite a senha para entrar.</p>
+  <input id="pw" type="password" placeholder="Senha" autocomplete="current-password" autofocus>
+  <p><button class="btn" id="go" style="width:100%">Entrar</button></p><div class="err" id="e">${esc(msg||"")}</div></div>`;
+  const go=async()=>{
+    const b=$("#go");b.disabled=true;$("#e").textContent="";
+    try{
+      const r=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({senha:$("#pw").value})});
+      const j=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(j.erro||"Não foi possível entrar.");
+      token=j.token;try{sessionStorage.setItem("rm_token",token)}catch(e){}
+      await carregar();route();
+    }catch(e){b.disabled=false;$("#e").textContent=e.message||"Erro ao entrar."}
+  };
+  $("#go").onclick=go;$("#pw").onkeydown=e=>{if(e.key==="Enter")go()};
+}
+function sair(manual=true){
+  token=null;recipes=[];try{sessionStorage.removeItem("rm_token")}catch(e){}
+  location.hash="";telaLogin(manual?"":"Sua sessão expirou. Entre novamente.");
+}
+
+/* ---------- Rotas ---------- */
+window.addEventListener("hashchange",()=>token&&route());
+function route(){
+  const h=location.hash.slice(1);
+  if(h==="nova")return form(null);
+  if(h.startsWith("editar/"))return form(recipes.find(r=>r.id===h.slice(7)));
+  if(h.startsWith("r/"))return ver(recipes.find(r=>r.id===h.slice(2)));
+  lista();
+}
+
+/* ---------- Lista e busca ---------- */
+function lista(){
+  const cats=["Todas",...new Set(recipes.map(r=>r.categoria).filter(Boolean))];
+  app.innerHTML=`<div class="top"><h1>🍰 Receitas da Mamãe</h1><span><button class="btn" onclick="location.hash='nova'">Nova receita</button> <button class="btn s" onclick="sair()">Sair</button></span></div>
+  <input id="q" type="search" placeholder="Buscar por nome ou ingrediente" value="${esc(busca)}">
+  <div class="cats">${cats.map(c=>`<span class="chip ${c===cat?"on":""}" data-c="${esc(c)}">${esc(c)}</span>`).join("")}</div><div id="res"></div>`;
+  $("#q").oninput=e=>{busca=e.target.value;resultados()};
+  app.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{cat=c.dataset.c;lista()});
+  resultados();
+}
+function resultados(){
+  const q=norm(busca);
+  const f=recipes.filter(r=>(cat==="Todas"||r.categoria===cat)&&(!q||norm(r.nome).includes(q)||(r.ingredientes||[]).some(i=>norm(i.nome).includes(q))));
+  const t=recipes.length;
+  if(!t){$("#res").innerHTML='<div class="msg">Ainda não há receitas. Toque em “Nova receita” para cadastrar a primeira.</div>';return}
+  const cnt=f.length===t?`${t} ${t===1?"receita cadastrada":"receitas cadastradas"}`:`${f.length} ${f.length===1?"receita encontrada":"receitas encontradas"} (de ${t} cadastradas)`;
+  $("#res").innerHTML=`<p class="mut">${cnt}</p>`+(f.length?f.map(r=>`<a class="item" href="#r/${r.id}" style="color:inherit;text-decoration:none"><b>${fmt(r.nome)}</b><br><span class="tag">${esc(r.categoria||"Outros")}</span><span class="mut">${[r.tempo,r.porcoes?r.porcoes+" porções":""].filter(Boolean).map(esc).join(" · ")}</span></a>`).join(""):'<div class="msg">Nenhuma receita encontrada.</div>');
+}
+
+/* ---------- Ver receita ---------- */
+const li=i=>`<li>${fmt(ingTexto(i))}</li>`;
+function ver(r){
+  if(!r){app.innerHTML='<div class="msg">Receita não encontrada.</div><p style="text-align:center"><button class="btn" onclick="location.hash=\'\'">Voltar</button></p>';return}
+  const temRec=(r.recheio||[]).length||r.recheioModo||r.recheioDica;
+  app.innerHTML=`<div class="top noprint"><button class="btn s" onclick="location.hash=''">Voltar</button><span><button class="btn s" onclick="print()">Imprimir</button> <button class="btn s" onclick="location.hash='editar/${r.id}'">Editar</button> <button class="btn o" id="ex">Excluir</button></span></div>
+  <h1>${fmt(r.nome)}</h1><span class="tag">${esc(r.categoria||"Outros")}</span><span class="mut">${[r.tempo,r.porcoes?r.porcoes+" porções":""].filter(Boolean).map(esc).join(" · ")}</span>
+  <div id="delbox"></div>
+  <h2>Ingredientes</h2><ul class="ing">${(r.ingredientes||[]).map(li).join("")}</ul>
+  <h2>Modo de fazer</h2><ol>${(r.preparo||[]).map(p=>`<li>${fmt(cap(p))}</li>`).join("")}</ol>
+  ${r.obs?`<h2>Dicas</h2><p>${fmtbr(r.obs)}</p>`:""}
+  ${temRec?`<h2>Recheio</h2><ul class="ing">${(r.recheio||[]).map(li).join("")}</ul>${r.recheioModo?`<p>${fmtbr(r.recheioModo)}</p>`:""}${r.recheioDica?`<p><b>Dica do recheio:</b><br>${fmtbr(r.recheioDica)}</p>`:""}`:""}`;
+  $("#ex").onclick=()=>confirmarExclusao(r);
+  scrollTo(0,0);
+}
+function confirmarExclusao(r){
+  $("#delbox").innerHTML=`<div class="box noprint"><b>Excluir “${esc(r.nome)}”?</b><p class="mut">Isso não pode ser desfeito. Para confirmar, digite <b>EXCLUIR RECEITA</b> (maiúsculas ou minúsculas).</p>
+  <input id="cf" autocomplete="off" placeholder="EXCLUIR RECEITA"><div class="acts"><button class="btn d" id="cd" disabled>Excluir receita</button><button class="btn s" id="cc">Cancelar</button></div><div class="err" id="ce"></div></div>`;
+  const cf=$("#cf");cf.focus();
+  cf.oninput=()=>{$("#cd").disabled=cf.value.trim().toLowerCase()!=="excluir receita"};
+  $("#cc").onclick=()=>{$("#delbox").innerHTML=""};
+  $("#cd").onclick=async()=>{
+    $("#cd").disabled=true;
+    try{await api("DELETE","?id="+r.id+"&confirm="+encodeURIComponent(cf.value.trim()));await carregar();location.hash=""}
+    catch(e){if(!e.auth){$("#ce").textContent=e.msg;$("#cd").disabled=false}}
+  };
+}
+
+/* ---------- Cadastro / edição ---------- */
+function linha(i={}){const un=LEG[i.un]??(i.un||"");
+  return `<div class="row"><input placeholder="Qtd" value="${esc(i.qtd)}" aria-label="Quantidade"><select aria-label="Unidade">${UNID.map(u=>`<option value="${esc(u.s)}" ${u.s===un?"selected":""}>${u.s||"unid."}</option>`).join("")}</select><input placeholder="Ingrediente" value="${esc(i.nome)}" aria-label="Ingrediente"><button type="button" class="x" aria-label="Remover ingrediente">✕</button></div>`;
+}
+function addLinha(box,i){box.insertAdjacentHTML("beforeend",linha(i));const r=box.lastElementChild;r.querySelector(".x").onclick=()=>r.remove()}
+function lerLinhas(box){return[...box.children].map(r=>{const[q,u,n]=r.querySelectorAll("input,select");return{qtd:q.value.trim(),un:u.value,nome:n.value.trim()}}).filter(i=>i.nome)}
+
+function form(r){
+  const novo=!r;r=r||{};
+  app.innerHTML=`<h1>${novo?"Nova receita":"Editar receita"}</h1>
+  <label for="nome">Nome da receita</label><input id="nome" value="${esc(r.nome)}" placeholder="Ex.: Bolo de cenoura">
+  <div class="g2"><div><label for="cat">Categoria</label><select id="cat">${CATS.map(c=>`<option ${c===r.categoria?"selected":""}>${c}</option>`).join("")}</select></div>
+  <div><label for="por">Porções</label><input id="por" type="number" min="1" value="${esc(r.porcoes)}"></div></div>
+  <label for="tempo">Tempo de preparo</label><select id="tempo">${TEMPOS.map(t=>`<option value="${t}" ${t===r.tempo?"selected":""}>${t||"Escolher"}</option>`).join("")}</select>
+  <label>Ingredientes</label><div id="ing"></div><button type="button" class="btn s" id="ai">Adicionar ingrediente</button>
+  <label for="prep">Modo de fazer (um passo por linha)</label><textarea id="prep" style="min-height:170px">${esc((r.preparo||[]).join("\n"))}</textarea>
+  <p class="dica">Dica: coloque *asteriscos* em volta de uma palavra para deixá-la em negrito.</p>
+  <label for="obs">Dicas e observações</label><textarea id="obs">${esc(r.obs)}</textarea>
+  <label>Ingredientes do recheio (se tiver)</label><div id="rec"></div><button type="button" class="btn s" id="ar">Adicionar ingrediente do recheio</button>
+  <label for="rm">Modo de fazer o recheio</label><textarea id="rm">${esc(r.recheioModo)}</textarea>
+  <label for="rd">Dica do recheio</label><textarea id="rd">${esc(r.recheioDica)}</textarea>
+  <div class="acts"><button class="btn" id="sv">Salvar receita</button><button class="btn s" id="cn">Cancelar</button></div><div class="err" id="err"></div>`;
+  const ing=$("#ing"),rec=$("#rec");
+  (r.ingredientes?.length?r.ingredientes:[{},{},{}]).forEach(i=>addLinha(ing,i));
+  (r.recheio||[]).forEach(i=>addLinha(rec,i));
+  $("#ai").onclick=()=>addLinha(ing);$("#ar").onclick=()=>addLinha(rec);
+  $("#cn").onclick=()=>{location.hash=novo?"":"r/"+r.id};
+  $("#sv").onclick=async()=>{
+    const nome=$("#nome").value.trim();
+    if(!nome){$("#err").textContent="Dê um nome à receita.";return}
+    const data={nome:titulo(nome),categoria:$("#cat").value,porcoes:$("#por").value,tempo:$("#tempo").value,ingredientes:lerLinhas(ing),recheio:lerLinhas(rec),
+      recheioModo:caps($("#rm").value.trim()),recheioDica:caps($("#rd").value.trim()),preparo:$("#prep").value.split("\n").map(s=>cap(s.trim())).filter(Boolean),obs:caps($("#obs").value.trim())};
+    $("#sv").disabled=true;$("#err").textContent="";
+    try{
+      const salva=novo?await api("POST","",data):await api("PUT","?id="+r.id,data);
+      await carregar();location.hash="r/"+salva.id;
+    }catch(e){if(!e.auth){$("#sv").disabled=false;$("#err").textContent=e.msg||"Não foi possível salvar."}}
+  };
+  scrollTo(0,0);
+}
+
+/* ---------- Início ---------- */
+(async()=>{
+  if(!token)return telaLogin();
+  try{await carregar();route()}catch(e){if(!e.auth)telaLogin("Não foi possível carregar. Entre novamente.")}
+})();
+</script>
+</body>
+</html>

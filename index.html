@@ -50,7 +50,8 @@ ul.ing{padding-left:22px}ol li{margin:10px 0}
 <body>
 <div class="w" id="app"></div>
 <script>
-const UNID=["","xíc", "xíc (chá)", "colher","colher (sopa)","colher (chá)","g","kg","ml","L","unid.","fatia(s)","pitada","a gosto", "medida"];
+const UNID=[{s:""},{s:"xícara",p:"xícaras"},{s:"colher (sopa)",p:"colheres (sopa)"},{s:"colher (chá)",p:"colheres (chá)"},{s:"g",p:"g"},{s:"kg",p:"kg"},{s:"ml",p:"ml"},{s:"L",p:"L"},{s:"fatia",p:"fatias"},{s:"pitada",p:"pitadas"},{s:"a gosto"}];
+const LEG={"xíc.":"xícara","xic.":"xícara","fatia(s)":"fatia","unid.":""};
 const CATS=["Bolos","Doces","Sobremesas","Salgados","Massas","Carnes","Aves","Peixes","Sopas","Saladas","Pães","Bebidas","Iogurtes","Almoço","Outros"];
 const TEMPOS=["","15 min","30 min","45 min","1 h","1 h 30","2 h","Mais de 2 h"];
 let token=null,recipes=[],busca="",cat="Todas";
@@ -65,6 +66,22 @@ const cap=s=>String(s||"").replace(/^(\s*\**\s*)(\p{L})/u,(m,a,b)=>a+b.toUpperCa
 const caps=s=>String(s||"").split("\n").map(cap).join("\n");
 const fmt=s=>esc(s).replace(/\*([^*\n]+)\*/g,"<strong>$1</strong>");
 const fmtbr=s=>fmt(caps(s)).replace(/\n/g,"<br>");
+const NUMP=/dois|duas|tr[eê]s|quatro|cinco|seis|sete|oito|nove|dez|d[uú]zia/i;
+function qtdValor(q){
+  q=String(q||"").toLowerCase();
+  const t=q.match(/\d+\s*\/\s*\d+|\d+(?:[.,]\d+)?/g);
+  if(t)return t.reduce((a,x)=>{if(x.includes("/")){const[n,d]=x.split("/").map(Number);return a+(d?n/d:0)}return a+parseFloat(x.replace(",","."))},0);
+  if(NUMP.test(q))return 2;
+  return /meia|meio/.test(q)?0.5:1;
+}
+function ingTexto(i){
+  const un=LEG[i.un]??(i.un||""),qtd=(i.qtd||"").trim(),nome=i.nome||"";
+  if(un==="a gosto")return nome+" a gosto";
+  if(!un)return [qtd,nome].filter(Boolean).join(" ");
+  const u=UNID.find(x=>x.s===un);
+  const medida=(u&&u.p&&qtdValor(qtd)>1)?u.p:un;
+  return [qtd,medida,"de",nome].filter(Boolean).join(" ");
+}
 
 /* ---------- API ---------- */
 async function api(method,qs,body){
@@ -78,7 +95,7 @@ async function carregar(){recipes=await api("GET","");}
 
 /* ---------- Login ---------- */
 function telaLogin(msg){
-  app.innerHTML=`<div class="login"><h1>🩷 Receitas da Rose 🩷</h1><p class="mut">Digite a senha pra entrar.</p>
+  app.innerHTML=`<div class="login"><h1>🍰 Receitas da Mamãe</h1><p class="mut">Digite a senha para entrar.</p>
   <input id="pw" type="password" placeholder="Senha" autocomplete="current-password" autofocus>
   <p><button class="btn" id="go" style="width:100%">Entrar</button></p><div class="err" id="e">${esc(msg||"")}</div></div>`;
   const go=async()=>{
@@ -128,7 +145,7 @@ function resultados(){
 }
 
 /* ---------- Ver receita ---------- */
-const li=i=>`<li>${fmt([i.qtd,i.un,i.nome].filter(Boolean).join(" "))}</li>`;
+const li=i=>`<li>${fmt(ingTexto(i))}</li>`;
 function ver(r){
   if(!r){app.innerHTML='<div class="msg">Receita não encontrada.</div><p style="text-align:center"><button class="btn" onclick="location.hash=\'\'">Voltar</button></p>';return}
   const temRec=(r.recheio||[]).length||r.recheioModo||r.recheioDica;
@@ -136,9 +153,9 @@ function ver(r){
   <h1>${fmt(r.nome)}</h1><span class="tag">${esc(r.categoria||"Outros")}</span><span class="mut">${[r.tempo,r.porcoes?r.porcoes+" porções":""].filter(Boolean).map(esc).join(" · ")}</span>
   <div id="delbox"></div>
   <h2>Ingredientes</h2><ul class="ing">${(r.ingredientes||[]).map(li).join("")}</ul>
-  ${temRec?`<h2>Recheio</h2><ul class="ing">${(r.recheio||[]).map(li).join("")}</ul>${r.recheioModo?`<p>${fmtbr(r.recheioModo)}</p>`:""}${r.recheioDica?`<p><b>Dica do recheio:</b><br>${fmtbr(r.recheioDica)}</p>`:""}`:""}
   <h2>Modo de fazer</h2><ol>${(r.preparo||[]).map(p=>`<li>${fmt(cap(p))}</li>`).join("")}</ol>
-  ${r.obs?`<h2>Dicas</h2><p>${fmtbr(r.obs)}</p>`:""}`;
+  ${r.obs?`<h2>Dicas</h2><p>${fmtbr(r.obs)}</p>`:""}
+  ${temRec?`<h2>Recheio</h2><ul class="ing">${(r.recheio||[]).map(li).join("")}</ul>${r.recheioModo?`<p>${fmtbr(r.recheioModo)}</p>`:""}${r.recheioDica?`<p><b>Dica do recheio:</b><br>${fmtbr(r.recheioDica)}</p>`:""}`:""}`;
   $("#ex").onclick=()=>confirmarExclusao(r);
   scrollTo(0,0);
 }
@@ -156,8 +173,8 @@ function confirmarExclusao(r){
 }
 
 /* ---------- Cadastro / edição ---------- */
-function linha(i={}){
-  return `<div class="row"><input placeholder="Qtd" value="${esc(i.qtd)}" aria-label="Quantidade"><select aria-label="Unidade">${UNID.map(u=>`<option value="${esc(u)}" ${u===i.un?"selected":""}>${u||"unid."}</option>`).join("")}</select><input placeholder="Ingrediente" value="${esc(i.nome)}" aria-label="Ingrediente"><button type="button" class="x" aria-label="Remover ingrediente">✕</button></div>`;
+function linha(i={}){const un=LEG[i.un]??(i.un||"");
+  return `<div class="row"><input placeholder="Qtd" value="${esc(i.qtd)}" aria-label="Quantidade"><select aria-label="Unidade">${UNID.map(u=>`<option value="${esc(u.s)}" ${u.s===un?"selected":""}>${u.s||"unid."}</option>`).join("")}</select><input placeholder="Ingrediente" value="${esc(i.nome)}" aria-label="Ingrediente"><button type="button" class="x" aria-label="Remover ingrediente">✕</button></div>`;
 }
 function addLinha(box,i){box.insertAdjacentHTML("beforeend",linha(i));const r=box.lastElementChild;r.querySelector(".x").onclick=()=>r.remove()}
 function lerLinhas(box){return[...box.children].map(r=>{const[q,u,n]=r.querySelectorAll("input,select");return{qtd:q.value.trim(),un:u.value,nome:n.value.trim()}}).filter(i=>i.nome)}
@@ -170,12 +187,12 @@ function form(r){
   <div><label for="por">Porções</label><input id="por" type="number" min="1" value="${esc(r.porcoes)}"></div></div>
   <label for="tempo">Tempo de preparo</label><select id="tempo">${TEMPOS.map(t=>`<option value="${t}" ${t===r.tempo?"selected":""}>${t||"Escolher"}</option>`).join("")}</select>
   <label>Ingredientes</label><div id="ing"></div><button type="button" class="btn s" id="ai">Adicionar ingrediente</button>
-  <label>Recheio (se tiver)</label><div id="rec"></div><button type="button" class="btn s" id="ar">Adicionar ingrediente do recheio</button>
-  <label for="rm">Modo de fazer o recheio</label><textarea id="rm">${esc(r.recheioModo)}</textarea>
-  <label for="rd">Dica do recheio</label><textarea id="rd">${esc(r.recheioDica)}</textarea>
   <label for="prep">Modo de fazer (um passo por linha)</label><textarea id="prep" style="min-height:170px">${esc((r.preparo||[]).join("\n"))}</textarea>
   <p class="dica">Dica: coloque *asteriscos* em volta de uma palavra para deixá-la em negrito.</p>
   <label for="obs">Dicas e observações</label><textarea id="obs">${esc(r.obs)}</textarea>
+  <label>Ingredientes do recheio (se tiver)</label><div id="rec"></div><button type="button" class="btn s" id="ar">Adicionar ingrediente do recheio</button>
+  <label for="rm">Modo de fazer o recheio</label><textarea id="rm">${esc(r.recheioModo)}</textarea>
+  <label for="rd">Dica do recheio</label><textarea id="rd">${esc(r.recheioDica)}</textarea>
   <div class="acts"><button class="btn" id="sv">Salvar receita</button><button class="btn s" id="cn">Cancelar</button></div><div class="err" id="err"></div>`;
   const ing=$("#ing"),rec=$("#rec");
   (r.ingredientes?.length?r.ingredientes:[{},{},{}]).forEach(i=>addLinha(ing,i));
