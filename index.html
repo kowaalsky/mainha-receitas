@@ -7,11 +7,11 @@
 <title>Receitas da Mamãe</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍰</text></svg>">
 <style>
-:root{--bg:#f2f5ef;--card:#fff;--tx:#1d2a24;--mut:#5f7168;--ac:#2d5a4a;--acx:#fff;--hl:#f0c24b;--hlx:#2b2208;--bd:#d5ded6;--rd:#b3261e}
-@media (prefers-color-scheme:dark){:root{--bg:#121a16;--card:#1b2620;--tx:#e8f0ea;--mut:#9db0a4;--ac:#7cc4a4;--acx:#0f1a15;--hl:#c9a23a;--hlx:#1a1405;--bd:#2c3b33;--rd:#ff8a80}}
+:root{--bg:#f5eff5;--card:#fff;--tx:#7e406c;--mut:#5f7168;--ac:#592d5a;--acx:#fff;--hl:#f04be2;--hlx:#2b2208;--bd:#d5ded6;--rd:#b3261e}
+@media (prefers-color-scheme:dark){:root{--bg:#121a16;--card:#1b2620;--tx:#e8f0ea;--mut:#9db0a4;--ac:#7cc4a4;--acx:#1a0f18;--hl:#c9a23a;--hlx:#1a0517;--bd:#751d55;--rd:#ff8a80}}
 *{box-sizing:border-box}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--tx);font:17px/1.6 "Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",serif;
+body{margin:0;background-image: url(files/bg.png);background-size:400px;var(--tx);font:17px/1.6 "Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",serif;
 padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 .w{max-width:720px;margin:0 auto;padding:18px}
 h1{font-size:1.9rem;line-height:1.2;margin:.3em 0}
@@ -72,7 +72,7 @@ async function carregar(){recipes=await api("GET","");}
 
 /* ---------- Login ---------- */
 function telaLogin(msg){
-  app.innerHTML=`<div class="login"><h1>🍰 Receitas da Mamãe</h1><p class="mut">Digite a senha para entrar.</p>
+  app.innerHTML=`<div class="login"><h1>🩷 Receitas da Rose 🩷</h1><p class="mut">Digite a senha pra entrar.</p>
   <input id="pw" type="password" placeholder="Senha" autocomplete="current-password" autofocus>
   <p><button class="btn" id="go" style="width:100%">Entrar</button></p><div class="err" id="e">${esc(msg||"")}</div></div>`;
   const go=async()=>{
