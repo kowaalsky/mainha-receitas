@@ -103,7 +103,7 @@ function qtdValor(q){
   if(NUMP.test(q))return 2;
   return /meia|meio/.test(q)?0.5:1;
 }
-const AV={otimo:{i:"bi-star-fill",l:"Ótimo",c:"av-otimo"},gostei:{i:"bi-hand-thumbs-up",l:"Gostei",c:"av-gostei"},nao:{i:"bi-hand-thumbs-down",l:"Não gostei",c:"av-nao"}};
+const AV={otimo:{i:"bi-star-fill",l:"Ótimo",c:"av-otimo"},gostei:{i:"bi-hand-thumbs-up-fill",l:"Gostei",c:"av-gostei"},nao:{i:"bi-hand-thumbs-down-fill",l:"Não gostei",c:"av-nao"}};
 const avIcone=k=>`<i class="bi ${AV[k].i} ${AV[k].c}"></i>`;
 function avBtn(r,grande){
   const a=AV[r.avaliacao];
