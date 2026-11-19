@@ -87,3 +87,31 @@ ul.ing{padding-left:22px}ol li{margin:10px 0}
         display:block!important
     }
 }
+
+/* ===== CORES CLARAS — INÍCIO (bloco NOVO: cole no fim do <style>) ===== */
+/* Paleta única: o site fica igual no modo claro e no escuro do aparelho */
+:root,
+:root[data-theme="dark"]{
+  --bg:#fff5f9;    /* fundo (atrás dos corações) */
+  --card:#ffffff;  /* cards, busca e botões de categoria */
+  --tx:#3d2433;    /* texto principal (ameixa escuro) */
+  --mut:#8c6a7c;  /* texto de apoio (cinza rosado) */
+  --ac:#2a7f5f;    /* cor principal: botões e categoria selecionada (verde) */
+  --acx:#ffffff;   /* texto sobre a cor principal */
+  --hl:#ffc2d6;    /* etiqueta da categoria e faixa do card (rosa suave) */
+  --hlx:#5a1b38;   /* texto da etiqueta */
+  --bd:#f1c4d6;    /* bordas (rosa claro) */
+}
+/* Repete a paleta para ganhar do modo escuro antigo */
+@media (prefers-color-scheme:dark){
+  :root{--bg:#fff5f9;--card:#ffffff;--tx:#3d2433;--mut:#8c6a7c;--ac:#2a7f5f;--acx:#ffffff;--hl:#ffc2d6;--hlx:#5a1b38;--bd:#f1c4d6}
+  /* Volta os ícones da avaliação para as cores fortes, porque agora o card é claro */
+  .av-btn,.av-coracao{color:#000}
+  .av-otimo{color:#0d6efd}
+  .av-gostei{color:#198754}
+  .av-nao{color:#dc3545}
+}
+/* Toques extras: sombra suave nos cards e foco rosado nos campos */
+.item{box-shadow:0 2px 8px rgba(214,51,108,.12)}
+input:focus,select:focus,textarea:focus{border-color:#e64980;outline:none}
+/* ===== CORES CLARAS — FIM ===== */
