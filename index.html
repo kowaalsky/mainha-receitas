@@ -97,7 +97,7 @@ async function carregar(){recipes=await api("GET","");}
 
 /* ---------- Login ---------- */
 function telaLogin(msg){
-  app.innerHTML=`<div class="login"><h1>🍰 Receitas da Mamãe</h1><p class="mut">Digite a senha para entrar.</p>
+  app.innerHTML=`<div class="login"><h1>Receitas da Mainha</h1><p class="mut">Digite a senha para entrar.</p>
   <input id="pw" type="password" placeholder="Senha" autocomplete="current-password" autofocus>
   <p><button class="btn" id="go" style="width:100%">Entrar</button></p><div class="err" id="e">${esc(msg||"")}</div></div>`;
   const go=async()=>{
